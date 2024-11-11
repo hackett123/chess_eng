@@ -1,7 +1,11 @@
 require_relative 'move'
 require_relative 'converters'
+require_relative 'move_generator'
 
 class Board
+# Public API:
+# make_move(move) - takes in algebraic notation
+# show - outputs a string visual of the board
 
   attr_reader :piece_locations, :board_string, :moves, :white_to_move, :legal_castles
 
@@ -26,14 +30,43 @@ class Board
     @legal_castles = legal_castles || 'kqKQ'
   end
 
+  # This will be updated to only accept algebraic notation. Right now it still takes the whole Move obj
   def make_move(move:)
-    if is_legal_move(move:)
-      moves << move
+    _make_move(move:)
+  end
+
+  def show
+    # Will use a basic cli output for now.
+    ranks, rank = [], ""
+    board_string.each_char.with_index do |c, i|
+      next_rank = ((i % 8 == 0) and (i > 0)) 
+      if next_rank
+        ranks.append(rank.strip)
+        rank = ""
+      end
+      piece_str = c + ' ' 
+      if piece_str == "0 "
+        piece_str = "- " 
+      end
+      rank += piece_str
+    end
+    # get last rank in
+    ranks << rank.strip
+
+    # flip for visual correctness
+    ranks = ranks.reverse
+    ranks.join("\n")
+  end
+
+private
+  # Private make_move takes in the dis-ambiguated move object
+  def _make_move(move:)
+    if Moves::MoveGenerator.is_move_legal?(move:, piece_locations:, white_to_move:)
+      @moves << move.algebraic
       update_positions(move:)
       @white_to_move = !white_to_move
     end
   end
-
   def update_positions(move:)
     update_board_string(move.piece, move.from_loc, move.to_loc)
     update_piece_locations(move.piece, move.from_loc, move.to_loc)
@@ -52,41 +85,4 @@ class Board
     locs.append(to_loc)
     # puts("Update piece locations to", piece_locations)
   end
-
-  def is_legal_move(move:)
-    return true # TODO REMOVE
-    legal = true
-    if white_to_move
-        legal &= generate_white_legal_moves(piece_locations).include(move)
-    else
-        legal &= generate_black_legal_moves(piece_locations).include(move)
-    end
-    legal
-  end
-
-
-  def show
-    # Will use a basic cli output for now.
-    ranks, rank = [], ""
-    board_string.each_char.with_index do |c, i|
-      next_rank = ((i % 8 == 0) and (i > 0)) 
-      if next_rank
-        ranks.append(rank.strip)
-        rank = ""
-      end
-      piece_str = c + ' ' 
-      if piece_str == "0 "
-        piece_str = "- " 
-      end
-      rank += piece_str
-    end
-
-    # get last rank in
-    ranks << rank.strip
-
-    # flip for visual correctness
-    ranks = ranks.reverse
-    ranks.join("\n")
-  end
-
 end

@@ -17,26 +17,36 @@ describe Board do
       board.make_move(move: Moves::Move.new(algebraic: "Nf3", from_loc: "g1", to_loc: "f3", piece: "n"))
       board.make_move(move: Moves::Move.new(algebraic: "Nc6", from_loc: "b8", to_loc: "c6", piece: "N"))
       board.make_move(move: Moves::Move.new(algebraic: "c3", from_loc: "c2", to_loc: "c3", piece: "p"))
+      board.make_move(move: Moves::Move.new(algebraic: "Nf6", from_loc: "g8", to_loc: "f6", piece: "N"))
+      board.make_move(move: Moves::Move.new(algebraic: "e5", from_loc: "e4", to_loc: "e5", piece: "p"))
+      board.make_move(move: Moves::Move.new(algebraic: "Nd5", from_loc: "f6", to_loc: "d5", piece: "N"))
+      board.make_move(move: Moves::Move.new(algebraic: "d4", from_loc: "d2", to_loc: "d4", piece: "p"))
+      board.make_move(move: Moves::Move.new(algebraic: "cxd4", from_loc: "c5", to_loc: "d4", piece: "P"))
     end
 
-    it "is black's move" do
+    it "is white's move" do
       subject
-      expect(board.white_to_move).to eq(false)
+      expect(board.white_to_move).to eq(true)
     end
 
     it "has everything in the right place" do
       subject
       expected_board = <<-BOARD
-R - B Q K B N R
+R - B Q K B - R
 P P - P P P P P
 - - N - - - - -
-- - P - - - - -
-- - - - p - - -
+- - - N p - - -
+- - - P - - - -
 - - p - - n - -
-p p - p - p p p
+p p - - - p p p
 r n b q k b - r
 BOARD
       expect(board.show).to eq(expected_board.strip)
+    end
+
+    it "stored the correct moves" do
+      subject
+      expect(board.moves).to eq(%w[e4 c5 Nf3 Nc6 c3 Nf6 e5 Nd5 d4 cxd4])
     end
   end
 end
