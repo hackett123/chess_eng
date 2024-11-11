@@ -30,12 +30,21 @@ class Board
     @legal_castles = legal_castles || 'kqKQ'
   end
 
-  # This will be updated to only accept algebraic notation. Right now it still takes the whole Move obj
-  def make_move(move:)
-    _make_move(move:)
+  def make_move(algebraic:)
+    print_move(algebraic:)
+    _make_move(move: Moves::Move.from_algebraic(algebraic:, piece_locations:, white_to_move:))
+    show(print: true)
   end
 
-  def show
+  def print_move(algebraic:)
+    move_str = ''
+    move_str += "#{1 + (moves.length / 2)}. "
+    move_str += '..' unless white_to_move
+    move_str += algebraic
+    p move_str
+  end
+
+  def show(print: false)
     # Will use a basic cli output for now.
     ranks, rank = [], ""
     board_string.each_char.with_index do |c, i|
@@ -55,6 +64,14 @@ class Board
 
     # flip for visual correctness
     ranks = ranks.reverse
+
+    if print
+      for rank in ranks
+        p rank
+      end
+      p ''
+    end
+
     ranks.join("\n")
   end
 
@@ -67,7 +84,7 @@ private
     @white_to_move = !white_to_move
   end
   def update_positions(move:)
-    update_board_string(move.piece, move.from_loc, move.to_loc)
+    update_board_string(move.piece.to_s, move.from_loc, move.to_loc)
     update_piece_locations(move.piece, move.from_loc, move.to_loc)
   end
 

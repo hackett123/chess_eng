@@ -9,19 +9,19 @@ describe Board do
     end
   end
 
-  context 'board state after a few moves' do
+  context 'using private method, board state after a few moves' do
     let(:board) { Board.new }
     subject do
-      board.make_move(move: Moves::Move.new(algebraic: "e4", from_loc: "e2", to_loc: "e4", piece: "p"))
-      board.make_move(move: Moves::Move.new(algebraic: "c5", from_loc: "c7", to_loc: "c5", piece: "P"))
-      board.make_move(move: Moves::Move.new(algebraic: "Nf3", from_loc: "g1", to_loc: "f3", piece: "n"))
-      board.make_move(move: Moves::Move.new(algebraic: "Nc6", from_loc: "b8", to_loc: "c6", piece: "N"))
-      board.make_move(move: Moves::Move.new(algebraic: "c3", from_loc: "c2", to_loc: "c3", piece: "p"))
-      board.make_move(move: Moves::Move.new(algebraic: "Nf6", from_loc: "g8", to_loc: "f6", piece: "N"))
-      board.make_move(move: Moves::Move.new(algebraic: "e5", from_loc: "e4", to_loc: "e5", piece: "p"))
-      board.make_move(move: Moves::Move.new(algebraic: "Nd5", from_loc: "f6", to_loc: "d5", piece: "N"))
-      board.make_move(move: Moves::Move.new(algebraic: "d4", from_loc: "d2", to_loc: "d4", piece: "p"))
-      board.make_move(move: Moves::Move.new(algebraic: "cxd4", from_loc: "c5", to_loc: "d4", piece: "P"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "e4", from_loc: "e2", to_loc: "e4", piece: "p"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "c5", from_loc: "c7", to_loc: "c5", piece: "P"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "Nf3", from_loc: "g1", to_loc: "f3", piece: "n"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "Nc6", from_loc: "b8", to_loc: "c6", piece: "N"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "c3", from_loc: "c2", to_loc: "c3", piece: "p"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "Nf6", from_loc: "g8", to_loc: "f6", piece: "N"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "e5", from_loc: "e4", to_loc: "e5", piece: "p"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "Nd5", from_loc: "f6", to_loc: "d5", piece: "N"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "d4", from_loc: "d2", to_loc: "d4", piece: "p"))
+      board.send(:_make_move, move: Moves::Move.new(algebraic: "cxd4", from_loc: "c5", to_loc: "d4", piece: "P"))
     end
 
     it "is white's move" do
