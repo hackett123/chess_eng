@@ -60,12 +60,11 @@ class Board
 
 private
   # Private make_move takes in the dis-ambiguated move object
+  # At this point we assume the move is legal.
   def _make_move(move:)
-    if Moves::MoveGenerator.is_move_legal?(move:, piece_locations:, white_to_move:)
-      @moves << move.algebraic
-      update_positions(move:)
-      @white_to_move = !white_to_move
-    end
+    @moves << move.algebraic
+    update_positions(move:)
+    @white_to_move = !white_to_move
   end
   def update_positions(move:)
     update_board_string(move.piece, move.from_loc, move.to_loc)

@@ -15,5 +15,20 @@ module Converters
     file_index = (file - 1) * 8
     file_index + rank
   end
+  
+  # This has utility mainly for tests, bc during actual gameplay we keep the board string updated
+  def self.board_string_from_piece_locations(piece_locations:)
+    piece_location_as_indexes = piece_locations.transform_values do |squares|
+      squares.map { |s| self.from_algebraic_to_index(algebraic: s) }
+    end
+    board_string = '0' * 64
+    piece_location_as_indexes.each do |piece_type, indices|
+      indices.each do |index|
+        board_string[index] = piece_type.to_s
+      end
+    end
+
+    board_string
+  end
 
 end

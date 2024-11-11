@@ -1,3 +1,5 @@
+require_relative 'move_generator'
+
 # Basic wrapper for tuple of move details. Example:
 # Bxc6, b5, c6
 # Note that to_loc and piece are redundant but included for simplicity
@@ -13,18 +15,22 @@ module Moves
 
     # Given just algebraic notation, create a full move object
     # Requires the hash of all piece locations, and can save time by receiving the white_to_move bool
+    # Raises an error if the move is illegal
     def self.from_algebraic(algebraic:, piece_locations:, white_to_move:)
       # Procedure:
       # 1) identify the piece type.
       # 2) Filter down to the subset of relevant piece types to find the from location.
       # 3) for each of the available piece types, look at the existing location(s) and filter down to legal moves
       piece_type = self.extract_piece_type(algebraic:, white_to_move:)
-      to_loc = self.extract_to_loc(algebraic:)
-      p "Piece type is #{piece_type}, to_loc is #{to_loc}"
-      candidate_from_locs = piece_locations[piece_type]
-
-      return candidate_from_locs.first if candidate_from_locs.length == 1
-
+      legal_moves_for_piece_type = MoveGenerator.legal_moves_for(piece_type:, piece_locations:)
+      legal_moves_for_piece_type.each do |from_square, moves|
+        moves.each do |move|
+          if move == algebraic
+            return Move.new(algebraic:, from_loc: from_square, to_loc: self.extract_to_loc(algebraic: move), piece: piece_type)
+          end
+        end
+      end
+      raise 'Could not find a legal move based on this algebraic input'
     end
 
     private

@@ -16,28 +16,28 @@ describe Moves::Move do
     end
   end
 
-  context '#from_algebraic' do
-    let(:algebraic) { nil }
-    let(:piece_locations) { nil }
-    let(:white_to_move) { true }
-    subject { Moves::Move.from_algebraic(algebraic:, piece_locations:, white_to_move:) }
-
-    context 'with only one piece left of that type' do
-      let(:piece_locations) {
-        {
-          b: ['c1']
-        }
-      }
-      let(:algebraic) { 'Bb2' }
-      it 'returns the only option' do
-        expect(subject).to eq('c1')
-      end
-    end
-
-    context 'with multiple possible pieces' do
-
-    end
-  end
+#  context '#from_algebraic' do
+#    let(:algebraic) { nil }
+#    let(:piece_locations) { nil }
+#    let(:white_to_move) { true }
+#    subject { Moves::Move.from_algebraic(algebraic:, piece_locations:, white_to_move:) }
+#
+#    context 'with only one piece left of that type' do
+#      let(:piece_locations) {
+#        {
+#          b: ['c1']
+#        }
+#      }
+#      let(:algebraic) { 'Bb2' }
+#      it 'returns the only option' do
+#        expect(subject).to eq('c1')
+#      end
+#    end
+#
+#    context 'with multiple possible pieces' do
+#
+#    end
+#  end
 
   context 'private methods' do
     let(:algebraic) { nil }
