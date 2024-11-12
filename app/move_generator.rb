@@ -1,80 +1,140 @@
 require_relative 'converters'
+require_relative 'board_facts'
 
 module Moves
-  module MoveGenerator
+  module MoveGenerator extend self
 
-    # These sub-modules return lists of algebraic notation. It contains
-    # all legal moves for the piece type as a hash of format { from_loc: [to_loc, ...] }.
 
-    module Pawn
-      # pawns move vertically once, which means an index offset of +-8.
-      # We additionally have to account for "first move" possibilities of two squares
-      # when accounting for captures, it's +-8, +-1, if enemy piece is present
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # initially, we will ignore en-passent as well as promotion.
-        board_string = ::Converters.board_string_from_piece_locations(piece_locations:)
+    # This defines the common mixin, Piece, that implements the public `legal_moves` method for each piece type, and
+    # returns a hash of format { starting_square: [legal_destination_squares] }
+    # Modules which include `Piece` must define the private methods `piece_type` and `legal_moves_single_piece` sub-modules return lists of algebraic notation. It contains
+    module Piece extend self
+      def legal_moves(piece_locations:, white_to_move:)
+        this_piece_locations = ::BoardFacts.piece_type_locations(piece_locations:, white: white_to_move, piece_type:)
+        this_piece_locations&.map { |loc| [loc, legal_moves_single_piece(loc:, piece_locations:, white_to_move:)] }.to_h
+      end
 
-        pawn_locations = piece_locations&.select { |piece_type, locations| white_to_move ? piece_type == :p : piece_type == :P }.values.first
+      private def piece_type
+        raise "Not Implemented!"
+      end
+
+    end
+
+    module Pawn extend self
+      include Piece
+
+      private
+      def piece_type
+        :p
+      end
+
+      # initially, we will ignore en-passent as well as promotion.
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         sign = white_to_move ? 1 : -1
+        moves = []
+        # Push 1 square...
+        index = ::Converters.to_index(algebraic: loc)
+        candidate = index + (sign * 8)
+        algebraic_candidate = ::Converters.to_algebraic(index: candidate)
+        moves << algebraic_candidate unless ::BoardFacts.piece_present(piece_locations:, square: algebraic_candidate)
 
-        moves = {}
-        pawn_locations&.each do |loc|
-          moves[loc] = []
-          # Pushes...
-          index = ::Converters.from_algebraic_to_index(algebraic: loc)
-          candidate = index + (sign * 8)
-          moves[loc] << ::Converters.from_index_to_algebraic(index: candidate) if board_string[candidate] == '0'
-          if ((white_to_move && loc[1] == '2') || (!white_to_move && loc[1] == '7'))
-            candidate = index + (sign * 8 * 2)
-            moves[loc] << ::Converters.from_index_to_algebraic(index: candidate) if (board_string[candidate] == '0' and board_string[candidate - (sign * 8)] == '0')
-          end
-          
-          # Captures...
-          capture_prefix = "#{loc[0]}x"
-          capture_candidates = [candidate - 1, candidate + 1] # this doesn't handle 'off the edge' considerations
-          capture_candidates.each do |candidate|
-            piece_present = board_string[candidate] != '0'
-            opponent_piece = if white_to_move
-              board_string[candidate].upcase == board_string[candidate]
-            else
-              board_string[candidate].downcase == board_string[candidate]
-            end
-            moves[loc] << "#{capture_prefix}#{::Converters.from_index_to_algebraic(index:candidate)}" if (piece_present && opponent_piece)
-          end
+        # Push 2 squares...
+        if on_starting_rank(loc:, white_to_move:)
+          candidate = index + (sign * 8 * 2)
+          algebraic_candidate = ::Converters.to_algebraic(index: candidate)
+          reqs = [
+            !::BoardFacts.piece_present(piece_locations:, square: algebraic_candidate),
+            !::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: candidate - (sign * 8)))
+          ]
+          moves << algebraic_candidate if reqs.all?
+        end
+
+        # Capture...
+        capture_prefix = "#{loc[0]}x"
+        capture_candidates = [candidate - 1, candidate + 1] # this doesn't handle 'off the edge' considerations
+        capture_candidates.each do |candidate|
+          algebraic_candidate = ::Converters.to_algebraic(index: candidate)
+          reqs = [
+            ::BoardFacts.piece_present(piece_locations:, square: algebraic_candidate),
+            ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: algebraic_candidate),
+            ::BoardFacts.different_rank(square_one: loc, square_two: algebraic_candidate)
+          ]
+          moves << "#{capture_prefix}#{::Converters.to_algebraic(index:candidate)}" if reqs.all?
         end
         moves
       end
+
+      def on_starting_rank(loc:, white_to_move:)
+        if white_to_move
+          ::Converters::to_rank(algebraic: loc) == 2
+        else
+          ::Converters::to_rank(algebraic: loc) == 7
+        end
+      end
     end
-    module Rook
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # TODO: Implement
+
+    module Rook extend self
+      include Piece
+
+      private
+      def piece_type
+        :r
+      end
+
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         []
       end
     end
-    module Knight
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # TODO: Implement
+
+    module Knight extend self
+      include Piece
+
+      private
+      def piece_type
+        :n
+      end
+
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         []
       end
     end
-    module Bishop
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # TODO: Implement
+    module Bishop extend self
+      include Piece
+
+      private
+      def piece_type
+        :b
+      end
+
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         []
       end
     end
-    module Queen
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # TODO: Implement
+    module Queen extend self
+      include Piece
+
+      private
+      def piece_type
+        :q
+      end
+
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         []
       end
     end
-    module King
-      def self.legal_moves(piece_locations:, white_to_move:)
-        # TODO: Implement
+    module King extend self
+      include Piece
+
+      private
+      def piece_type
+        :k
+      end
+
+      def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
         []
       end
     end
+
     PIECE_TYPE_TO_MODULE = {
       p: Pawn,
       r: Rook,
@@ -84,16 +144,16 @@ module Moves
       k: King
     }
 
-    def self.legal_moves_for(piece_type:, piece_locations:)
+    def legal_moves_for(piece_type:, piece_locations:)
       white_to_move = piece_type.downcase == piece_type
       PIECE_TYPE_TO_MODULE[piece_type.downcase].legal_moves(piece_locations:, white_to_move:)
     end
 
-    def self.generate_white_legal_moves(piece_locations:)
+    def generate_white_legal_moves(piece_locations:)
       []
     end
 
-    def self.generate_black_legal_moves(piece_locations:)
+    def generate_black_legal_moves(piece_locations:)
       []
     end
 

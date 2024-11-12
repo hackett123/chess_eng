@@ -1,6 +1,7 @@
 module Converters
+  extend self
 
-  def self.from_index_to_algebraic(index:)
+  def to_algebraic(index:)
     # 0 -> a1, 1 -> b1, 8 -> a2, ... 63 -> h8
     rank = index / 8
     file = index % 8
@@ -8,7 +9,7 @@ module Converters
   end
 
   # By 'algebraic', we really mean the square name. So e6, g2, ...
-  def self.from_algebraic_to_index(algebraic:)
+  def to_index(algebraic:)
     rank = algebraic[0].ord - 'a'.ord
     file = algebraic[1].to_i
     
@@ -17,9 +18,9 @@ module Converters
   end
   
   # This has utility mainly for tests, bc during actual gameplay we keep the board string updated
-  def self.board_string_from_piece_locations(piece_locations:)
+  def board_string_from_piece_locations(piece_locations:)
     piece_location_as_indexes = piece_locations.transform_values do |squares|
-      squares.map { |s| self.from_algebraic_to_index(algebraic: s) }
+      squares.map { |s| to_index(algebraic: s) }
     end
     board_string = '0' * 64
     piece_location_as_indexes.each do |piece_type, indices|
@@ -29,6 +30,15 @@ module Converters
     end
 
     board_string
+  end
+
+  # Some utility methods for processing
+  def to_rank(algebraic:)
+    (to_index(algebraic:) / 8) + 1
+  end
+
+  def to_file(algebraic:)
+    (to_index(algebraic:) % 8) + 1
   end
 
 end

@@ -4,7 +4,7 @@ describe Converters do
 
   context 'from index to algebraic' do
     let(:index) { 0 }
-    subject { Converters.from_index_to_algebraic(index:) }
+    subject { Converters.to_algebraic(index:) }
 
     context '0' do
       it 'maps to a1' do
@@ -36,7 +36,7 @@ describe Converters do
 
   context 'from algebraic to index' do
     let(:algebraic) { nil }
-    subject { Converters.from_algebraic_to_index(algebraic:) }
+    subject { Converters.to_index(algebraic:) }
 
     context 'a1' do
       let(:algebraic) { 'a1' }
@@ -63,6 +63,42 @@ describe Converters do
       let(:algebraic) { 'h8' }
       it 'maps to 63' do
         expect(subject).to eq(63)
+      end
+    end
+  end
+
+  context "#to_rank" do
+    subject { Converters.to_rank(algebraic:) }
+
+    context "a1" do
+      let(:algebraic) { 'a1' }
+      it "returns first rank" do
+        expect(subject).to eq(1)
+      end
+    end
+
+    context "c4" do
+      let(:algebraic) { 'c4' }
+      it "returns fourth rank" do
+        expect(subject).to eq(4)
+      end
+    end
+  end
+
+  context "#file_from_algebraic" do
+    subject { Converters.to_file(algebraic:) }
+
+    context "a1" do
+      let(:algebraic) { 'a1' }
+      it "returns first file" do
+        expect(subject).to eq(1)
+      end
+    end
+
+    context "c4" do
+      let(:algebraic) { 'c4' }
+      it "returns third file" do
+        expect(subject).to eq(3)
       end
     end
   end

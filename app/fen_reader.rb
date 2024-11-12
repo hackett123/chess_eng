@@ -39,7 +39,7 @@ module FenReader
       unless piece_locations.keys.include?(c.to_sym)
         piece_locations[c.to_sym] = []
       end
-      piece_locations[c.to_sym] << Converters.from_index_to_algebraic(index:)
+      piece_locations[c.to_sym] << Converters.to_algebraic(index:)
     end
 
     board_string_arr = board_string_arr.reverse

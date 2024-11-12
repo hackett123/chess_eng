@@ -1,4 +1,5 @@
 require_relative '../app/move_generator'
+require_relative '../app/board'
 
 describe Moves::MoveGenerator do
 
@@ -130,6 +131,23 @@ describe Moves::MoveGenerator do
               end
 
             end
+          end
+        end
+
+        context 'edge cases (literally)' do
+          context 'first file' do
+            let(:piece_locations) {
+              {
+                p: ['a5'],
+                P: ['h5', 'b6']
+              }
+            }
+            it 'returns the capturable square and push square, but not the edge case square' do
+              expect(subject).to eq({'a5' => ['a6', 'axb6']})
+            end
+          end
+          context 'last file' do
+
           end
         end
 

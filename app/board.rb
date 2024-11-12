@@ -89,8 +89,8 @@ private
   end
 
   def update_board_string(piece, from_loc, to_loc)
-    index_from = Converters.from_algebraic_to_index(algebraic: from_loc)
-    index_to = Converters.from_algebraic_to_index(algebraic: to_loc)
+    index_from = Converters.to_index(algebraic: from_loc)
+    index_to = Converters.to_index(algebraic: to_loc)
     @board_string = board_string[0...index_from] + "0" + board_string[(index_from + 1)..-1]
     @board_string = board_string[0...index_to] + piece + board_string[(index_to + 1)..-1]
   end
