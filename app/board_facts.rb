@@ -20,7 +20,7 @@ module BoardFacts
   def piece_present(piece_locations:, square:)
     board_string = Converters.board_string_from_piece_locations(piece_locations:)
     index = Converters.to_index(algebraic: square)
-    board_string[index] != EMPTY_SQUARE_CHAR
+    (0...64).include?(index) && board_string[index] != EMPTY_SQUARE_CHAR
   end
 
   def opponent_piece_at_square(white_to_move:, piece_locations:, square:)

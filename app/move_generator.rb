@@ -14,7 +14,12 @@ module Moves
         this_piece_locations&.map { |loc| [loc, legal_moves_single_piece(loc:, piece_locations:, white_to_move:)] }.to_h
       end
 
-      private def piece_type
+      def in_bounds(index)
+        (0...64).include?(index)
+      end
+
+      private
+      def piece_type
         raise "Not Implemented!"
       end
 
@@ -82,7 +87,50 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        up_moves = vertical_moves(sign: 1, loc:, piece_locations:, white_to_move:)
+        down_moves = vertical_moves(sign: -1, loc:, piece_locations:, white_to_move:)
+        left_moves = horizontal_moves(sign: -1, loc:, piece_locations:, white_to_move:)
+        right_moves = horizontal_moves(sign: 1, loc:, piece_locations:, white_to_move:)
+        up_moves + down_moves + left_moves + right_moves
+      end
+
+      def directional_moves(dir:, loc:, piece_locations:, white_to_move:)
+        # TODO - extract out horizontal_moves / vertical_moves common behavior here
+      end
+
+      def horizontal_moves(sign:, loc:, piece_locations:, white_to_move:)
+        moves = []
+        starting_rank = ::Converters.to_rank(algebraic: loc)
+        curr_index = ::Converters.to_index(algebraic: loc) + (sign * 1)
+        collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        while !collision and in_bounds(curr_index) and starting_rank == ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+          moves << "R#{::Converters.to_algebraic(index: curr_index)}"
+          curr_index += (sign * 1)
+          collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        end
+        if collision
+          if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+            moves << "Rx#{::Converters.to_algebraic(index: curr_index)}"
+          end
+        end
+        moves
+      end
+
+      def vertical_moves(sign:, loc:, piece_locations:, white_to_move:)
+        moves = []
+        curr_index = ::Converters.to_index(algebraic: loc) + (sign * 8)
+        collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        while !collision and in_bounds(curr_index)
+          moves << "R#{::Converters.to_algebraic(index: curr_index)}"
+          curr_index += (sign * 8)
+          collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        end
+        if collision
+          if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+            moves << "Rx#{::Converters.to_algebraic(index: curr_index)}"
+          end
+        end
+        moves
       end
     end
 
@@ -94,8 +142,39 @@ module Moves
         :n
       end
 
+      # L shape is formed by (+-8, +-2), and (+-16, +-1). These correspond to the horizontal and vertical Ls
+      # for each of those 8 squares, check 1) on board, 2) appropriate rank distance from knight, and 3) piece present
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        index = ::Converters.to_index(algebraic: loc)
+        horizontal_l_candidates = [index + 8 + 2, index + 8 - 2, index - 8 + 2, index - 8 - 2]
+        vertical_l_candidates = [index + 16 + 1, index + 16 - 1, index - 16 + 1, index - 16 - 1]
+
+        starting_rank = ::Converters.to_rank(algebraic: loc)
+
+        # Must be one rank different from starting square
+        horizontal_l_candidates.select! do |c|
+          candidate_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: c))
+          (candidate_rank - starting_rank).abs == 1
+        end
+        # Must be two rank different from starting square
+        vertical_l_candidates.select! do |c|
+          # candidate_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: c))
+          candidate_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: c))
+          (candidate_rank - starting_rank).abs == 2
+        end
+
+        (horizontal_l_candidates + vertical_l_candidates)
+          .select { |c| in_bounds(c) }
+          .map { |c| ::Converters.to_algebraic(index: c) }
+          .map { |square|
+            if ::BoardFacts.piece_present(piece_locations:, square:)
+              if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square:)
+                "Nx#{square}"
+              end
+            else
+              "N#{square}"
+            end
+          }.compact
       end
     end
     module Bishop extend self
@@ -107,9 +186,37 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        up_right_moves = diagonal_moves(offset: 9, loc:, piece_locations:, white_to_move:)
+        down_right_moves = diagonal_moves(offset: -7, loc:, piece_locations:, white_to_move:)
+        up_left_moves = diagonal_moves(offset: 7, loc:, piece_locations:, white_to_move:)
+        down_left_moves = diagonal_moves(offset: -9, loc:, piece_locations:, white_to_move:)
+
+        up_right_moves + down_right_moves + up_left_moves + down_left_moves
+      end
+
+      def diagonal_moves(offset:, loc:, piece_locations:, white_to_move:)
+        moves = []
+        curr_index = ::Converters.to_index(algebraic: loc) + offset
+        collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        last_rank = ::Converters.to_rank(algebraic: loc)
+        curr_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+        while !collision and in_bounds(curr_index) and ((curr_rank - last_rank).abs == 1)
+          moves << "B#{::Converters.to_algebraic(index: curr_index)}"
+          curr_index += offset
+          last_rank = curr_rank
+          curr_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+          collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        end
+
+        if collision
+          if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+            moves << "Bx#{::Converters.to_algebraic(index: curr_index)}"
+          end
+        end
+        moves
       end
     end
+
     module Queen extend self
       include Piece
 
@@ -119,7 +226,10 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        bishop_ish_moves = Bishop.send(:legal_moves_single_piece, loc:, piece_locations:, white_to_move:)
+        rook_ish_moves = Rook.send(:legal_moves_single_piece, loc:, piece_locations:, white_to_move:)
+        queen_moves = bishop_ish_moves + rook_ish_moves
+        queen_moves.map { |m| "Q#{m[1..]}" }
       end
     end
     module King extend self
@@ -131,7 +241,33 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        # we could just get the queen moves and filter by radii of 1, but I don't think that's more elegant
+        index = ::Converters.to_index(algebraic: loc)
+        rank = ::Converters.to_rank(algebraic: loc)
+
+        up_moves = [index + 7, index + 8, index + 9]
+          .select { |i| in_bounds(i) }
+          .map { |i| ::Converters.to_algebraic(index: i) }
+        lateral_moves = [index - 1, index + 1]
+          .select { |i| in_bounds(i) }
+          .map { |i| ::Converters.to_algebraic(index: i) }
+        down_moves = [index - 9, index - 8, index - 7]
+          .select { |i| in_bounds(i) }
+          .map { |i| ::Converters.to_algebraic(index: i) }
+
+        up_moves.filter! { |m| ::Converters.to_rank(algebraic: m) - rank == 1 }
+        lateral_moves.filter! { |m| ::Converters.to_rank(algebraic: m) - rank == 0 }
+        down_moves.filter! { |m| ::Converters.to_rank(algebraic: m) - rank == -1 }
+
+        (up_moves + lateral_moves + down_moves).map do |m|
+          if ::BoardFacts.piece_present(piece_locations:, square: m)
+            if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: m)
+              "Kx#{m}"
+            end
+          else
+            "K#{m}"
+            end
+        end.compact
       end
     end
 

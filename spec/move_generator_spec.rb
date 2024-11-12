@@ -1,3 +1,4 @@
+require 'set'
 require_relative '../app/move_generator'
 require_relative '../app/board'
 
@@ -251,6 +252,174 @@ describe Moves::MoveGenerator do
 
             end
           end
+        end
+      end
+    end
+    context "rook moves" do
+      subject { Moves::MoveGenerator::Rook.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "nothing in the way" do
+        let(:piece_locations) {
+          {
+            r: ['f5']
+          }
+        }
+        it "returns all squares possible" do
+          expect(subject['f5'].to_set).to eq(%w[Rf6 Rf7 Rf8 Rf4 Rf3 Rf2 Rf1 Rg5 Rh5 Re5 Rd5 Rc5 Rb5 Ra5].to_set)
+        end
+      end
+      context "with pieces in vision" do
+        let(:piece_locations) {
+          {
+            r: ['f5', 'h2'],
+            Q: ['h5'], # note this will pass now, but is actually going to be a case where when we implement non-unique algebraic notation will matter
+            b: ['f1']
+          }
+        }
+        it "returns all squares possible" do
+          expect(subject['f5'].to_set).to eq(%w[Rf6 Rf7 Rf8 Rf4 Rf3 Rf2 Rg5 Rxh5 Re5 Rd5 Rc5 Rb5 Ra5].to_set)
+          expect(subject['h2'].to_set).to eq(%w[Rh1 Rh3 Rh4 Rxh5 Rg2 Rf2 Re2 Rd2 Rc2 Rb2 Ra2].to_set)
+        end
+      end
+    end
+
+    context "knight moves" do
+      subject { Moves::MoveGenerator::Knight.legal_moves(piece_locations:, white_to_move:) }
+      context "8 empty surrounding squares on board" do
+        let(:white_to_move) { true }
+        let(:piece_locations) {
+          {
+            n: ['d5']
+          }
+        }
+        it "returns all 8 squares (octoknight)" do
+          expect(subject['d5'].to_set).to eq(%w[Nc7 Ne7 Nb6 Nf6 Nc3 Ne3 Nb4 Nf4].to_set)
+        end
+      end
+      context "8 squares available, some occupied" do
+        let(:white_to_move) { true }
+        let(:piece_locations) {
+          {
+            n: ['e5'],
+            P: ['d7', 'f7'],
+            b: ['c4'],
+            q: ['f3']
+          }
+        }
+        it "returns all eligible squares for our octoknight" do
+          expect(subject['e5'].to_set).to eq(%w[Nxd7 Nxf7 Nc6 Ng6 Nd3 Ng4].to_set)
+        end
+      end
+      context "not all squares are all board" do
+        let(:white_to_move) { false }
+        let(:piece_locations) {
+          {
+            N: ['h6']
+          }
+        }
+        it "returns the valid squares" do
+          expect(subject['h6'].to_set).to eq(%w[Ng8 Nf7 Nf5 Ng4].to_set)
+        end
+      end
+    end
+
+    context "bishop moves" do
+      subject { Moves::MoveGenerator::Bishop.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "clear board" do
+        let(:piece_locations) {
+          {
+            b: ['d5']
+          }
+        }
+        it 'returns all visible squares' do
+          expect(subject['d5'].to_set).to eq(%w[Be6 Bf7 Bg8 Bc6 Bb7 Ba8 Be4 Bf3 Bg2 Bh1 Bc4 Bb3 Ba2].to_set)
+        end
+      end
+      context "with pieces" do
+        let(:piece_locations) {
+          {
+            b: ['d6'],
+            P: ['e7'],
+            N: ['f8', 'c7'],
+            p: ['c5']
+          }
+        }
+        it 'returns all viable squares' do
+          expect(subject['d6'].to_set).to eq(%w[Bxe7 Bxc7 Be5 Bf4 Bg3 Bh2].to_set)
+        end
+      end
+    end
+
+    context "queen moves" do
+      subject { Moves::MoveGenerator::Queen.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "clear board" do
+        let(:piece_locations) {
+          {
+            q: ['d5']
+          }
+        }
+        it 'returns all visible squares' do
+          expect(subject['d5'].to_set).to eq(%w[Qd6 Qd7 Qd8 Qd4 Qd3 Qd2 Qd1 Qe5 Qf5 Qg5 Qh5 Qc5 Qb5 Qa5 Qe6 Qf7 Qg8 Qe4 Qf3 Qg2 Qh1 Qc6 Qb7 Qa8 Qc4 Qb3 Qa2].to_set)
+        end
+      end
+      context "with pieces" do
+        let(:piece_locations) {
+          {
+            q: ['d6'],
+            Q: ['d4'],
+            b: ['g3'],
+            P: ['e7'],
+            N: ['f8', 'c7'],
+            p: ['c5'],
+            n: ['c6', 'g6']
+          }
+        }
+        it 'returns all viable squares' do
+          expect(subject['d6'].to_set).to eq(%w[Qxc7 Qd7 Qd8 Qxe7 Qe6 Qf6 Qe5 Qf4 Qd5 Qxd4].to_set)
+        end
+      end
+
+    end
+
+    context "king moves" do
+      subject { Moves::MoveGenerator::King.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "clear board" do
+        let(:piece_locations) {
+          {
+            k: ['d5']
+          }
+        }
+
+        it 'returns the 8 surrounding squares' do
+          expect(subject['d5'].to_set).to eq(%w[Kd4 Kd6 Ke4 Ke5 Ke6 Kc4 Kc5 Kc6].to_set)
+        end
+      end
+      context "clear, edge of board" do
+        let(:piece_locations) {
+          {
+            k: ['e1']
+          }
+        }
+
+        it 'returns the valid surrounding squares' do
+          expect(subject['e1'].to_set).to eq(%w[Kd1 Kf1 Kd2 Ke2 Kf2].to_set)
+        end
+      end
+      context "with pieces adjacent" do
+        let(:piece_locations) {
+          {
+            k: ['g1'],
+            p: ['h2', 'g2'],
+            B: ['f2'],
+            r: ['f1']
+          }
+        }
+
+        it 'returns the valid surrounding squares' do
+          expect(subject['g1'].to_set).to eq(%w[Kxf2 Kh1].to_set)
         end
       end
     end
