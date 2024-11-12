@@ -1,3 +1,4 @@
+require 'set'
 require_relative '../app/move_generator'
 require_relative '../app/board'
 
@@ -253,6 +254,85 @@ describe Moves::MoveGenerator do
           end
         end
       end
+    end
+    context "rook moves" do
+      subject { Moves::MoveGenerator::Rook.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "nothing in the way" do
+        let(:piece_locations) {
+          {
+            r: ['f5']
+          }
+        }
+        it "returns all squares possible" do
+          expect(subject['f5'].to_set).to eq(%w[f6 f7 f8 f4 f3 f2 f1 g5 h5 e5 d5 c5 b5 a5].to_set)
+        end
+      end
+      context "with pieces in vision" do
+        let(:piece_locations) {
+          {
+            r: ['f5', 'h2'],
+            Q: ['h5'], # note this will pass now, but is actually going to be a case where when we implement non-unique algebraic notation will matter
+            b: ['f1']
+          }
+        }
+        it "returns all squares possible" do
+          expect(subject['f5'].to_set).to eq(%w[f6 f7 f8 f4 f3 f2 g5 Rxh5 e5 d5 c5 b5 a5].to_set)
+          expect(subject['h2'].to_set).to eq(%w[h1 h3 h4 Rxh5 g2 f2 e2 d2 c2 b2 a2].to_set)
+        end
+      end
+    end
+
+    context "knight moves" do
+      subject { Moves::MoveGenerator::Knight.legal_moves(piece_locations:, white_to_move:) }
+      context "8 empty surrounding squares on board" do
+        let(:white_to_move) { true }
+        let(:piece_locations) {
+          {
+            n: ['d5']
+          }
+        }
+        it "returns all 8 squares (octoknight)" do
+          expect(subject['d5'].to_set).to eq(%w[Nc7 Ne7 Nb6 Nf6 Nc3 Ne3 Nb4 Nf4].to_set)
+        end
+      end
+      context "8 squares available, some occupied" do
+        let(:white_to_move) { true }
+        let(:piece_locations) {
+          {
+            n: ['e5'],
+            P: ['d7', 'f7'],
+            b: ['c4'],
+            q: ['f3']
+          }
+        }
+        it "returns all eligible squares for our octoknight" do
+          expect(subject['e5'].to_set).to eq(%w[Nxd7 Nxf7 Nc6 Ng6 Nd3 Ng4].to_set)
+        end
+      end
+      context "not all squares are all board" do
+        let(:white_to_move) { false }
+        let(:piece_locations) {
+          {
+            N: ['h6']
+          }
+        }
+        it "returns the valid squares" do
+          expect(subject['h6'].to_set).to eq(%w[Ng8 Nf7 Nf5 Ng4].to_set)
+        end
+      end
+    end
+
+    context "bishop moves" do
+
+    end
+
+    context "queen moves" do
+
+    end
+
+    context "king moves" do
+
     end
   end
 end
