@@ -265,7 +265,7 @@ describe Moves::MoveGenerator do
           }
         }
         it "returns all squares possible" do
-          expect(subject['f5'].to_set).to eq(%w[f6 f7 f8 f4 f3 f2 f1 g5 h5 e5 d5 c5 b5 a5].to_set)
+          expect(subject['f5'].to_set).to eq(%w[Rf6 Rf7 Rf8 Rf4 Rf3 Rf2 Rf1 Rg5 Rh5 Re5 Rd5 Rc5 Rb5 Ra5].to_set)
         end
       end
       context "with pieces in vision" do
@@ -277,8 +277,8 @@ describe Moves::MoveGenerator do
           }
         }
         it "returns all squares possible" do
-          expect(subject['f5'].to_set).to eq(%w[f6 f7 f8 f4 f3 f2 g5 Rxh5 e5 d5 c5 b5 a5].to_set)
-          expect(subject['h2'].to_set).to eq(%w[h1 h3 h4 Rxh5 g2 f2 e2 d2 c2 b2 a2].to_set)
+          expect(subject['f5'].to_set).to eq(%w[Rf6 Rf7 Rf8 Rf4 Rf3 Rf2 Rg5 Rxh5 Re5 Rd5 Rc5 Rb5 Ra5].to_set)
+          expect(subject['h2'].to_set).to eq(%w[Rh1 Rh3 Rh4 Rxh5 Rg2 Rf2 Re2 Rd2 Rc2 Rb2 Ra2].to_set)
         end
       end
     end
@@ -324,10 +324,62 @@ describe Moves::MoveGenerator do
     end
 
     context "bishop moves" do
-
+      subject { Moves::MoveGenerator::Bishop.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "clear board" do
+        let(:piece_locations) {
+          {
+            b: ['d5']
+          }
+        }
+        it 'returns all visible squares' do
+          expect(subject['d5'].to_set).to eq(%w[Be6 Bf7 Bg8 Bc6 Bb7 Ba8 Be4 Bf3 Bg2 Bh1 Bc4 Bb3 Ba2].to_set)
+        end
+      end
+      context "with pieces" do
+        let(:piece_locations) {
+          {
+            b: ['d6'],
+            P: ['e7'],
+            N: ['f8', 'c7'],
+            p: ['c5']
+          }
+        }
+        it 'returns all viable squares' do
+          expect(subject['d6'].to_set).to eq(%w[Bxe7 Bxc7 Be5 Bf4 Bg3 Bh2].to_set)
+        end
+      end
     end
 
     context "queen moves" do
+      subject { Moves::MoveGenerator::Queen.legal_moves(piece_locations:, white_to_move:) }
+      let(:white_to_move) { true }
+      context "clear board" do
+        let(:piece_locations) {
+          {
+            q: ['d5']
+          }
+        }
+        it 'returns all visible squares' do
+          expect(subject['d5'].to_set).to eq(%w[Qd6 Qd7 Qd8 Qd4 Qd3 Qd2 Qd1 Qe5 Qf5 Qg5 Qh5 Qc5 Qb5 Qa5 Qe6 Qf7 Qg8 Qe4 Qf3 Qg2 Qh1 Qc6 Qb7 Qa8 Qc4 Qb3 Qa2].to_set)
+        end
+      end
+      context "with pieces" do
+        let(:piece_locations) {
+          {
+            q: ['d6'],
+            Q: ['d4'],
+            b: ['g3'],
+            P: ['e7'],
+            N: ['f8', 'c7'],
+            p: ['c5'],
+            n: ['c6', 'g6']
+          }
+        }
+        it 'returns all viable squares' do
+          expect(subject['d6'].to_set).to eq(%w[Qxc7 Qd7 Qd8 Qxe7 Qe6 Qf6 Qe5 Qf4 Qd5 Qxd4].to_set)
+        end
+      end
 
     end
 

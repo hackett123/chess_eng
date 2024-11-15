@@ -14,7 +14,12 @@ module Moves
         this_piece_locations&.map { |loc| [loc, legal_moves_single_piece(loc:, piece_locations:, white_to_move:)] }.to_h
       end
 
-      private def piece_type
+      def in_bounds(index)
+        (0...64).include?(index)
+      end
+
+      private
+      def piece_type
         raise "Not Implemented!"
       end
 
@@ -98,10 +103,10 @@ module Moves
         starting_rank = ::Converters.to_rank(algebraic: loc)
         curr_index = ::Converters.to_index(algebraic: loc) + (sign * 1)
         collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
-        while !collision and (0...64).include?(curr_index) and starting_rank == ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
-          moves << ::Converters.to_algebraic(index: curr_index)
+        while !collision and in_bounds(curr_index) and starting_rank == ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+          moves << "R#{::Converters.to_algebraic(index: curr_index)}"
           curr_index += (sign * 1)
-        collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+          collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
         end
         if collision
           if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
@@ -115,8 +120,8 @@ module Moves
         moves = []
         curr_index = ::Converters.to_index(algebraic: loc) + (sign * 8)
         collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
-        while !collision and (0...64).include?(curr_index)
-          moves << ::Converters.to_algebraic(index: curr_index)
+        while !collision and in_bounds(curr_index)
+          moves << "R#{::Converters.to_algebraic(index: curr_index)}"
           curr_index += (sign * 8)
           collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
         end
@@ -153,12 +158,13 @@ module Moves
         end
         # Must be two rank different from starting square
         vertical_l_candidates.select! do |c|
+          # candidate_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: c))
           candidate_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: c))
           (candidate_rank - starting_rank).abs == 2
         end
 
         (horizontal_l_candidates + vertical_l_candidates)
-          .select { |c| (0...64).include?(c) }
+          .select { |c| in_bounds(c) }
           .map { |c| ::Converters.to_algebraic(index: c) }
           .map { |square|
             if ::BoardFacts.piece_present(piece_locations:, square:)
@@ -180,9 +186,37 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        up_right_moves = diagonal_moves(offset: 9, loc:, piece_locations:, white_to_move:)
+        down_right_moves = diagonal_moves(offset: -7, loc:, piece_locations:, white_to_move:)
+        up_left_moves = diagonal_moves(offset: 7, loc:, piece_locations:, white_to_move:)
+        down_left_moves = diagonal_moves(offset: -9, loc:, piece_locations:, white_to_move:)
+
+        up_right_moves + down_right_moves + up_left_moves + down_left_moves
+      end
+
+      def diagonal_moves(offset:, loc:, piece_locations:, white_to_move:)
+        moves = []
+        curr_index = ::Converters.to_index(algebraic: loc) + offset
+        collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        last_rank = ::Converters.to_rank(algebraic: loc)
+        curr_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+        while !collision and in_bounds(curr_index) and ((curr_rank - last_rank).abs == 1)
+          moves << "B#{::Converters.to_algebraic(index: curr_index)}"
+          curr_index += offset
+          last_rank = curr_rank
+          curr_rank = ::Converters.to_rank(algebraic: ::Converters.to_algebraic(index: curr_index))
+          collision = ::BoardFacts.piece_present(piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+        end
+
+        if collision
+          if ::BoardFacts.opponent_piece_at_square(white_to_move:, piece_locations:, square: ::Converters.to_algebraic(index: curr_index))
+            moves << "Bx#{::Converters.to_algebraic(index: curr_index)}"
+          end
+        end
+        moves
       end
     end
+
     module Queen extend self
       include Piece
 
@@ -192,7 +226,10 @@ module Moves
       end
 
       def legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
-        []
+        bishop_ish_moves = Bishop.send(:legal_moves_single_piece, loc:, piece_locations:, white_to_move:)
+        rook_ish_moves = Rook.send(:legal_moves_single_piece, loc:, piece_locations:, white_to_move:)
+        queen_moves = bishop_ish_moves + rook_ish_moves
+        queen_moves.map { |m| "Q#{m[1..]}" }
       end
     end
     module King extend self
