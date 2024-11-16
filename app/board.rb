@@ -31,10 +31,10 @@ class Board
     @legal_castles = legal_castles || 'kqKQ'
   end
 
-  def make_move(algebraic:)
-    print_move(algebraic:)
+  def make_move(algebraic:, print: false)
+    print_move(algebraic:) if print
     _make_move(move: Moves::Move.from_algebraic(algebraic:, piece_locations:, white_to_move:))
-    show(print: true)
+    show(print:)
   end
 
   def print_move(algebraic:)

@@ -17,20 +17,24 @@ module Moves
     # Requires the hash of all piece locations, and can save time by receiving the white_to_move bool
     # Raises an error if the move is illegal
     def self.from_algebraic(algebraic:, piece_locations:, white_to_move:)
-      # Procedure:
-      # 1) identify the piece type.
-      # 2) Filter down to the subset of relevant piece types to find the from location.
-      # 3) for each of the available piece types, look at the existing location(s) and filter down to legal moves
       piece_type = self.extract_piece_type(algebraic:, white_to_move:)
-      legal_moves_for_piece_type = MoveGenerator.legal_moves_for(piece_type:, piece_locations:)
-      legal_moves_for_piece_type.each do |from_square, moves|
-        moves.each do |move|
-          if move == algebraic
-            return Move.new(algebraic:, from_loc: from_square, to_loc: self.extract_to_loc(algebraic: move), piece: piece_type)
-          end
-        end
+
+      # returns the matching key/value pair as an array of two elements 
+      move = MoveGenerator.legal_moves_for(piece_type:, piece_locations:) 
+        .select { |from_square, moves| moves.include?(algebraic) }
+        .first
+      unless move.nil?
+        return Move.new(algebraic:, from_loc: move[0], to_loc: self.extract_to_loc(algebraic:), piece: piece_type)
       end
       raise 'Could not find a legal move based on this algebraic input'
+    end
+
+    def ==(other)
+      self.class == other.class &&
+      @algebraic == other.algebraic &&
+      self.from_loc == other.from_loc &&
+      self.to_loc == other.to_loc &&
+      self.piece == other.piece
     end
 
     private
