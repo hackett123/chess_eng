@@ -38,7 +38,7 @@ class Board
 
   def print_move(algebraic:)
     move_str = ''
-    move_str += "#{1 + (moves.length / 2)}. "
+    move_str += "#{1 + (moves.length / 2)}."
     move_str += '..' unless white_to_move
     move_str += algebraic
     p move_str
@@ -53,10 +53,7 @@ class Board
         ranks.append(rank.strip)
         rank = ""
       end
-      piece_str = c + ' ' 
-      if piece_str == "0 "
-        piece_str = "- " 
-      end
+      piece_str = (PIECE_TYPE_TO_SYMBOLS[c.to_sym] || "-") + ' '
       rank += piece_str
     end
     # get last rank in
@@ -76,6 +73,23 @@ class Board
   end
 
 private
+
+  PIECE_TYPE_TO_SYMBOLS = {
+   K: '♔️',
+   Q: '♕️',
+   B: '♗️',
+   N: '♘️',
+   P: '♙️',
+   R: '♖️',
+   k: '♚️',
+   q: '♛️',
+   b: '♝️',
+   n: '♞️',
+   p: '♟',
+   r: '♜'
+  }
+
+
   # Private make_move takes in the dis-ambiguated move object
   # At this point we assume the move is legal.
   def _make_move(move:)
