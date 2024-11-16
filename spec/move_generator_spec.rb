@@ -24,7 +24,61 @@ describe Moves::MoveGenerator do
     end
   end
 
-  context "legal moves" do
+  context "#generate_legal_moves_for_*" do
+    context "from a starting position" do
+      let(:piece_locations) { Board.new.piece_locations }
+      context "for white" do
+        subject { Moves::MoveGenerator.generate_white_legal_moves(piece_locations:) }
+        it "returns a hash of all the legal first moves for white" do
+          expect(subject).to eq({
+            "a2"=>["a3", "a4"],
+            "b2"=>["b3", "b4"],
+            "c2"=>["c3", "c4"],
+            "d2"=>["d3", "d4"],
+            "e2"=>["e3", "e4"],
+            "f2"=>["f3", "f4"],
+            "g2"=>["g3", "g4"],
+            "h2"=>["h3", "h4"],
+            "a1"=>[],
+            "h1"=>[],
+            "b1"=>["Nc3", "Na3"],
+            "g1"=>["Nh3", "Nf3"],
+            "c1"=>[],
+            "f1"=>[],
+            "d1"=>[],
+            "e1"=>[]}
+          )
+        end
+      end
+
+      context "for black" do
+        subject { Moves::MoveGenerator.generate_black_legal_moves(piece_locations:) }
+        it "returns a hash of all the legal first moves for black" do
+          expect(subject).to eq({
+            "a7"=>["a6", "a5"],
+            "b7"=>["b6", "b5"],
+            "c7"=>["c6", "c5"],
+            "d7"=>["d6", "d5"],
+            "e7"=>["e6", "e5"],
+            "f7"=>["f6", "f5"],
+            "g7"=>["g6", "g5"],
+            "h7"=>["h6", "h5"],
+            "a8"=>[],
+            "h8"=>[],
+            "b8"=>["Nc6", "Na6"],
+            "g8"=>["Nh6", "Nf6"],
+            "c8"=>[],
+            "f8"=>[],
+            "d8"=>[],
+            "e8"=>[]}
+)
+        end
+      end
+
+    end
+  end
+
+  context "legal moves - per piece" do
 
     context "pawns" do
       subject { Moves::MoveGenerator::Pawn.legal_moves(piece_locations:, white_to_move:) }

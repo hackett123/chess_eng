@@ -286,11 +286,19 @@ module Moves
     end
 
     def generate_white_legal_moves(piece_locations:)
-      []
+      pieces = piece_locations.keys.select { |k| k.downcase == k }
+      generate_moves_for_side(pieces:, piece_locations:)
     end
 
     def generate_black_legal_moves(piece_locations:)
-      []
+      pieces = piece_locations.keys.select { |k| k.upcase == k }
+      generate_moves_for_side(pieces:, piece_locations:)
+    end
+
+    private
+    def generate_moves_for_side(pieces:, piece_locations:)
+      move_hashes = pieces.map { |piece_type| legal_moves_for(piece_type:, piece_locations:) }
+      move_hashes.reduce(&:merge)
     end
 
   end
