@@ -1,6 +1,7 @@
 require_relative 'move'
 require_relative 'converters'
 require_relative 'move_generator'
+require_relative 'board_facts'
 
 class Board
 # Public API:
@@ -110,9 +111,14 @@ private
   end
 
   def update_piece_locations(piece, from_loc, to_loc)
+    # Remove the piece that was previously on that square, if there was one
+    if BoardFacts.piece_present(piece_locations:, square: to_loc)
+      piece_locations.select { |p, squares| squares.include?(to_loc) }.first[1].delete(to_loc)
+    end
+
+    # Move the piece from its starting square to its ending square
     locs = piece_locations[piece.to_sym]
     locs.reject! { |l| l == from_loc }
     locs.append(to_loc)
-    # puts("Update piece locations to", piece_locations)
   end
 end
