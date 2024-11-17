@@ -1,3 +1,5 @@
+require 'set'
+
 module Converters
   extend self
 

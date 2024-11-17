@@ -1,4 +1,5 @@
 require_relative 'converters'
+require 'set'
 
 # Contains utility methods that are useful to several classes
 module BoardFacts
@@ -36,10 +37,14 @@ module BoardFacts
     white_to_move ? board_string[index].upcase == board_string[index] : board_string[index].downcase == board_string[index]
   end
 
+  # Returns a signed integer - if square_one is a4 and square_two is c6, the difference is 2. but with opposite args, it's -2.
+  def rank_distance(square_one:, square_two:)
+    square_two[1] - square_one[1]
+  end
+    
+
   def different_rank(square_one:, square_two:)
-    rank_one = Converters.to_rank(algebraic: square_one)
-    rank_two = Converters.to_rank(algebraic: square_two)
-    rank_one != rank_two
+    square_one[1] != square_two[1]
   end
 
 end

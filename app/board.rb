@@ -3,6 +3,7 @@ require_relative 'converters'
 require_relative 'move_generator'
 require_relative 'board_facts'
 require_relative 'board_manipulation'
+require 'set'
 
 class Board
 # Public API:
@@ -28,18 +29,18 @@ class Board
 
   def initialize(piece_locations: nil, board_string: nil, white_to_move: nil, legal_castles: nil)
     @piece_locations = piece_locations || {
-      p: ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2'],
-      r: ['a1', 'h1'],
-      n: ['b1', 'g1'],
-      b: ['c1', 'f1'],
-      q: ['d1'],
-      k: ['e1'],
-      P: ['a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7'],
-      R: ['a8', 'h8'],
-      N: ['b8', 'g8'],
-      B: ['c8', 'f8'],
-      Q: ['d8'],
-      K: ['e8']
+      p: ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2'].to_set,
+      r: ['a1', 'h1'].to_set,
+      n: ['b1', 'g1'].to_set,
+      b: ['c1', 'f1'].to_set,
+      q: ['d1'].to_set,
+      k: ['e1'].to_set,
+      P: ['a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7'].to_set,
+      R: ['a8', 'h8'].to_set,
+      N: ['b8', 'g8'].to_set,
+      B: ['c8', 'f8'].to_set,
+      Q: ['d8'].to_set,
+      K: ['e8'].to_set
     }
     @board_string = board_string || "rnbqkbnrpppppppp00000000000000000000000000000000PPPPPPPPRNBQKBNR"
     @moves = []

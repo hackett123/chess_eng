@@ -37,7 +37,7 @@ module FenReader
     board_string.each_char.with_index do |c, index|
       next if c == '0'
       unless piece_locations.keys.include?(c.to_sym)
-        piece_locations[c.to_sym] = []
+        piece_locations[c.to_sym] = Set.new
       end
       piece_locations[c.to_sym] << Converters.to_algebraic(index:)
     end

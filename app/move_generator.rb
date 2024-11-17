@@ -44,7 +44,13 @@ module Moves
         to_loc = Move.extract_to_loc(algebraic: move) 
 
         full_move_obj = Move.new(algebraic: move, from_loc:, to_loc:, piece: piece_type)
-        cloned_piece_locations = JSON.parse(piece_locations.to_json, symbolize_names: true)
+
+        cloned_piece_locations = {}
+        piece_locations.each do |piece_type, set_of_squares| 
+          cloned_piece_locations[piece_type] = Set.new unless cloned_piece_locations.keys.include?(piece_type)
+          cloned_piece_locations[piece_type] = set_of_squares.dup
+        end
+
         future_piece_locations = BoardManipulation::update_piece_locations(piece_locations: cloned_piece_locations, move: full_move_obj)
         opponent_moves = white_to_move ?
           ::Moves::MoveGenerator.generate_black_legal_moves(piece_locations: future_piece_locations, filter_out_moves_that_put_us_in_check: false) :

@@ -20,7 +20,7 @@ module BoardManipulation extend self
       # Move the piece from its starting square to its ending square
       locs = piece_locations[move.piece.to_sym]
       locs.reject! { |l| l == move.from_loc }
-      locs.append(move.to_loc)
+      locs << move.to_loc
       piece_locations
     end 
 

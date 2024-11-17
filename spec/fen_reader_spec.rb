@@ -20,7 +20,7 @@ describe FenReader do
     it 'has the right piece positions' do
       board = subject
       positions = board.piece_locations
-      expect(positions[:n]).to eq(['b1', 'f3'])
+      expect(positions[:n]).to eq(['b1', 'f3'].to_set)
     end
 
     it 'is black to move' do
