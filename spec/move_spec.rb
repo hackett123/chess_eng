@@ -25,7 +25,8 @@ describe Moves::Move do
     context 'with only one piece left of that type' do
       let(:piece_locations) {
         {
-          b: ['c1']
+          b: ['c1'],
+          k: ['e1'], K: ['e8']
         }
       }
       let(:algebraic) { 'Bb2' }

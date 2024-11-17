@@ -37,7 +37,6 @@ module Moves
       self.piece == other.piece
     end
 
-    private
     def self.extract_piece_type(algebraic:, white_to_move:)
       piece_type = is_pawn_move(algebraic:) ? 'p' : algebraic[0]
       white_to_move ? piece_type.downcase.to_sym : piece_type.upcase.to_sym
@@ -47,6 +46,7 @@ module Moves
       algebraic.split("=")[0].chars[-2..].join
     end
 
+    private
     def self.is_pawn_move(algebraic:)
       algebraic[0].downcase == algebraic[0]
     end

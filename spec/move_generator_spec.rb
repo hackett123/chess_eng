@@ -78,7 +78,21 @@ describe Moves::MoveGenerator do
     end
   end
 
-  context "legal moves - per piece" do
+  context "legal moves, with checks" do
+    let(:board) { Board.new }
+    
+    context "for a pinned pawn" do
+      before do
+        starting_moves = %w[e4 e5 Nc3 Nf6 f4 exf4 e5 Qe7]
+        starting_moves.each { |move| board.make_move(algebraic: move) }
+      end
+      it "cannot capture the knight" do
+        expect(Moves::MoveGenerator.generate_white_legal_moves(piece_locations: board.piece_locations)["e5"].include?('exf6')).to eq(false)
+      end
+    end
+  end
+
+  context "legal moves - per piece - no checks" do
 
     context "pawns" do
       subject { Moves::MoveGenerator::Pawn.legal_moves(piece_locations:, white_to_move:) }
@@ -87,7 +101,7 @@ describe Moves::MoveGenerator do
         let(:white_to_move) { true }
 
         context "with no pawns left" do
-          let(:piece_locations) { {} }
+          let(:piece_locations) { {k: ['e1'], K: ['e8']} }
           it "returns an empty hash" do
             expect(subject).to eq({})
           end
@@ -97,7 +111,9 @@ describe Moves::MoveGenerator do
           context "when there is nothing in the two squares ahead" do
             let(:piece_locations) {
               {
-                p: ['e2']
+                p: ['e2'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'has two options' do
@@ -109,7 +125,9 @@ describe Moves::MoveGenerator do
             let(:piece_locations) {
               {
                 p: ['e2'],
-                b: ['e3']
+                b: ['e3'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'returns an empty arr' do
@@ -121,7 +139,9 @@ describe Moves::MoveGenerator do
             let(:piece_locations) {
               {
                 p: ['e2'],
-                Q: ['e4']
+                Q: ['e4'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'returns just one move arr' do
@@ -137,7 +157,9 @@ describe Moves::MoveGenerator do
               let(:piece_locations) {
                 {
                   p: ['d5'],
-                  P: ['d6']
+                  P: ['d6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns an empty arr' do
@@ -151,7 +173,9 @@ describe Moves::MoveGenerator do
                   p: ['d5'],
                   Q: ['c6'],
                   N: ['d6'],
-                  b: ['e6']
+                  b: ['e6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the capturable square' do
@@ -165,7 +189,9 @@ describe Moves::MoveGenerator do
               let(:piece_locations) {
                 {
                   p: ['d5'],
-                  P: ['d7']
+                  P: ['d7'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the forward square' do
@@ -178,7 +204,9 @@ describe Moves::MoveGenerator do
                 {
                   p: ['d5'],
                   Q: ['c6'],
-                  b: ['e6']
+                  b: ['e6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the capturable square and push square' do
@@ -194,7 +222,9 @@ describe Moves::MoveGenerator do
             let(:piece_locations) {
               {
                 p: ['a5'],
-                P: ['h5', 'b6']
+                P: ['h5', 'b6'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'returns the capturable square and push square, but not the edge case square' do
@@ -215,7 +245,9 @@ describe Moves::MoveGenerator do
           context "when there is nothing in the two squares ahead" do
             let(:piece_locations) {
               {
-                P: ['h7']
+                P: ['h7'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'has two options' do
@@ -227,7 +259,9 @@ describe Moves::MoveGenerator do
             let(:piece_locations) {
               {
                 P: ['f7'],
-                N: ['f6']
+                N: ['f6'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'returns an empty arr' do
@@ -239,7 +273,9 @@ describe Moves::MoveGenerator do
             let(:piece_locations) {
               {
                 P: ['e7'],
-                q: ['e5']
+                q: ['e5'],
+                k: ['e1'],
+                K: ['e8']
               }
             }
             it 'returns just one move arr' do
@@ -256,7 +292,9 @@ describe Moves::MoveGenerator do
               let(:piece_locations) {
                 {
                   p: ['d5'],
-                  P: ['d6']
+                  P: ['d6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns an empty arr' do
@@ -270,7 +308,9 @@ describe Moves::MoveGenerator do
                   P: ['d5'],
                   q: ['c4'],
                   n: ['d4'],
-                  B: ['e4']
+                  B: ['e4'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the capturable square' do
@@ -284,7 +324,9 @@ describe Moves::MoveGenerator do
               let(:piece_locations) {
                 {
                   p: ['c4'],
-                  P: ['e6']
+                  P: ['e6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the forward square' do
@@ -297,7 +339,9 @@ describe Moves::MoveGenerator do
                 {
                   P: ['d6'],
                   q: ['e5'],
-                  B: ['e6']
+                  B: ['e6'],
+                  k: ['e1'],
+                  K: ['e8']
                 }
               }
               it 'returns the capturable square and push square' do
@@ -315,7 +359,9 @@ describe Moves::MoveGenerator do
       context "nothing in the way" do
         let(:piece_locations) {
           {
-            r: ['f5']
+            r: ['f5'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it "returns all squares possible" do
@@ -327,7 +373,9 @@ describe Moves::MoveGenerator do
           {
             r: ['f5', 'h2'],
             Q: ['h5'], # note this will pass now, but is actually going to be a case where when we implement non-unique algebraic notation will matter
-            b: ['f1']
+            b: ['f1'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it "returns all squares possible" do
@@ -343,7 +391,9 @@ describe Moves::MoveGenerator do
         let(:white_to_move) { true }
         let(:piece_locations) {
           {
-            n: ['d5']
+            n: ['d5'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it "returns all 8 squares (octoknight)" do
@@ -357,7 +407,9 @@ describe Moves::MoveGenerator do
             n: ['e5'],
             P: ['d7', 'f7'],
             b: ['c4'],
-            q: ['f3']
+            q: ['f3'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it "returns all eligible squares for our octoknight" do
@@ -368,7 +420,9 @@ describe Moves::MoveGenerator do
         let(:white_to_move) { false }
         let(:piece_locations) {
           {
-            N: ['h6']
+            N: ['h6'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it "returns the valid squares" do
@@ -383,7 +437,9 @@ describe Moves::MoveGenerator do
       context "clear board" do
         let(:piece_locations) {
           {
-            b: ['d5']
+            b: ['d5'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it 'returns all visible squares' do
@@ -396,7 +452,9 @@ describe Moves::MoveGenerator do
             b: ['d6'],
             P: ['e7'],
             N: ['f8', 'c7'],
-            p: ['c5']
+            p: ['c5'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it 'returns all viable squares' do
@@ -411,7 +469,9 @@ describe Moves::MoveGenerator do
       context "clear board" do
         let(:piece_locations) {
           {
-            q: ['d5']
+            q: ['d5'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it 'returns all visible squares' do
@@ -427,7 +487,9 @@ describe Moves::MoveGenerator do
             P: ['e7'],
             N: ['f8', 'c7'],
             p: ['c5'],
-            n: ['c6', 'g6']
+            n: ['c6', 'g6'],
+            k: ['e1'],
+            K: ['e8']
           }
         }
         it 'returns all viable squares' do
@@ -443,7 +505,8 @@ describe Moves::MoveGenerator do
       context "clear board" do
         let(:piece_locations) {
           {
-            k: ['d5']
+            k: ['d5'],
+            K: ['e8']
           }
         }
 
@@ -454,7 +517,8 @@ describe Moves::MoveGenerator do
       context "clear, edge of board" do
         let(:piece_locations) {
           {
-            k: ['e1']
+            k: ['e1'],
+            K: ['e8']
           }
         }
 
@@ -466,6 +530,7 @@ describe Moves::MoveGenerator do
         let(:piece_locations) {
           {
             k: ['g1'],
+            K: ['e8'],
             p: ['h2', 'g2'],
             B: ['f2'],
             r: ['f1']

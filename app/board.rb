@@ -2,6 +2,7 @@ require_relative 'move'
 require_relative 'converters'
 require_relative 'move_generator'
 require_relative 'board_facts'
+require_relative 'board_manipulation'
 
 class Board
 # Public API:
@@ -9,6 +10,21 @@ class Board
 # show - outputs a string visual of the board
 
   attr_reader :piece_locations, :board_string, :moves, :white_to_move, :legal_castles
+
+  PIECE_TYPE_TO_SYMBOLS = {
+   K: '♔️',
+   Q: '♕️',
+   B: '♗️',
+   N: '♘️',
+   P: '♙️',
+   R: '♖️',
+   k: '♚️',
+   q: '♛️',
+   b: '♝️',
+   n: '♞️',
+   p: '♟',
+   r: '♜'
+  }
 
   def initialize(piece_locations: nil, board_string: nil, white_to_move: nil, legal_castles: nil)
     @piece_locations = piece_locations || {
@@ -74,51 +90,11 @@ class Board
   end
 
 private
-
-  PIECE_TYPE_TO_SYMBOLS = {
-   K: '♔️',
-   Q: '♕️',
-   B: '♗️',
-   N: '♘️',
-   P: '♙️',
-   R: '♖️',
-   k: '♚️',
-   q: '♛️',
-   b: '♝️',
-   n: '♞️',
-   p: '♟',
-   r: '♜'
-  }
-
-
-  # Private make_move takes in the dis-ambiguated move object
   # At this point we assume the move is legal.
   def _make_move(move:)
     @moves << move.algebraic
-    update_positions(move:)
+    @board_string = BoardManipulation.update_board_string(board_string:, move:)
+    @piece_locations = BoardManipulation.update_piece_locations(piece_locations:, move:)
     @white_to_move = !white_to_move
-  end
-  def update_positions(move:)
-    update_board_string(move.piece.to_s, move.from_loc, move.to_loc)
-    update_piece_locations(move.piece, move.from_loc, move.to_loc)
-  end
-
-  def update_board_string(piece, from_loc, to_loc)
-    index_from = Converters.to_index(algebraic: from_loc)
-    index_to = Converters.to_index(algebraic: to_loc)
-    @board_string = board_string[0...index_from] + "0" + board_string[(index_from + 1)..-1]
-    @board_string = board_string[0...index_to] + piece + board_string[(index_to + 1)..-1]
-  end
-
-  def update_piece_locations(piece, from_loc, to_loc)
-    # Remove the piece that was previously on that square, if there was one
-    if BoardFacts.piece_present(piece_locations:, square: to_loc)
-      piece_locations.select { |p, squares| squares.include?(to_loc) }.first[1].delete(to_loc)
-    end
-
-    # Move the piece from its starting square to its ending square
-    locs = piece_locations[piece.to_sym]
-    locs.reject! { |l| l == from_loc }
-    locs.append(to_loc)
   end
 end

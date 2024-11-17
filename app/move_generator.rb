@@ -1,5 +1,7 @@
 require_relative 'converters'
 require_relative 'board_facts'
+require_relative 'board_manipulation'
+require 'json'
 
 module Moves
   module MoveGenerator extend self
@@ -9,9 +11,16 @@ module Moves
     # returns a hash of format { starting_square: [legal_destination_squares] }
     # Modules which include `Piece` must define the private methods `piece_type` and `legal_moves_single_piece` sub-modules return lists of algebraic notation. It contains
     module Piece extend self
-      def legal_moves(piece_locations:, white_to_move:)
+      def legal_moves(piece_locations:, white_to_move:, filter_out_moves_that_put_us_in_check: true)
+        our_king_location = ::BoardFacts.piece_type_locations(piece_locations:, white: white_to_move, piece_type: :k).first
         this_piece_locations = ::BoardFacts.piece_type_locations(piece_locations:, white: white_to_move, piece_type:)
-        this_piece_locations&.map { |loc| [loc, legal_moves_single_piece(loc:, piece_locations:, white_to_move:)] }.to_h
+        this_piece_locations&.map do |loc|
+          possible_moves = legal_moves_single_piece(loc:, piece_locations:, white_to_move:)
+          if filter_out_moves_that_put_us_in_check
+            possible_moves = possible_moves.reject { |move| does_move_put_us_in_check(piece_locations:, white_to_move:, move:, from_loc: loc, king_position: our_king_location) }
+          end
+          [loc, possible_moves] 
+        end.to_h
       end
 
       def in_bounds(index)
@@ -21,6 +30,27 @@ module Moves
       private
       def piece_type
         raise "Not Implemented!"
+      end
+
+      # This is a naive implementation; it requires us to generate all legal moves for the opponent for every single one
+      # of our own possible moves. It would be considerably faster if we pre-generated the opponent moves, and then,
+      # for each of our moves, only recompute opponent moves that previously had the moving piece in its vision.
+      def does_move_put_us_in_check(piece_locations:, white_to_move:, move:, from_loc:, king_position:)
+        if king_position == '' || king_position.nil?
+          raise "CANNOT FIND KING"
+        end
+
+        piece_type = Move.extract_piece_type(algebraic: move, white_to_move:)
+        to_loc = Move.extract_to_loc(algebraic: move) 
+
+        full_move_obj = Move.new(algebraic: move, from_loc:, to_loc:, piece: piece_type)
+        cloned_piece_locations = JSON.parse(piece_locations.to_json, symbolize_names: true)
+        future_piece_locations = BoardManipulation::update_piece_locations(piece_locations: cloned_piece_locations, move: full_move_obj)
+        opponent_moves = white_to_move ?
+          ::Moves::MoveGenerator.generate_black_legal_moves(piece_locations: future_piece_locations, filter_out_moves_that_put_us_in_check: false) :
+          ::Moves::MoveGenerator.generate_white_legal_moves(piece_locations: future_piece_locations, filter_out_moves_that_put_us_in_check: false)
+
+        opponent_moves&.any? { |piece, moves| moves.any? { |m| m.include?("x#{king_position}") } }
       end
 
     end
@@ -280,24 +310,24 @@ module Moves
       k: King
     }
 
-    def legal_moves_for(piece_type:, piece_locations:)
+    def legal_moves_for(piece_type:, piece_locations:, filter_out_moves_that_put_us_in_check: true)
       white_to_move = piece_type.downcase == piece_type
-      PIECE_TYPE_TO_MODULE[piece_type.downcase].legal_moves(piece_locations:, white_to_move:)
+      PIECE_TYPE_TO_MODULE[piece_type.downcase].legal_moves(piece_locations:, white_to_move:, filter_out_moves_that_put_us_in_check:)
     end
 
-    def generate_white_legal_moves(piece_locations:)
+    def generate_white_legal_moves(piece_locations:, filter_out_moves_that_put_us_in_check: true)
       pieces = piece_locations.keys.select { |k| k.downcase == k }
-      generate_moves_for_side(pieces:, piece_locations:)
+      generate_moves_for_side(pieces:, piece_locations:, filter_out_moves_that_put_us_in_check:)
     end
 
-    def generate_black_legal_moves(piece_locations:)
+    def generate_black_legal_moves(piece_locations:, filter_out_moves_that_put_us_in_check: true)
       pieces = piece_locations.keys.select { |k| k.upcase == k }
-      generate_moves_for_side(pieces:, piece_locations:)
+      generate_moves_for_side(pieces:, piece_locations:, filter_out_moves_that_put_us_in_check:)
     end
 
     private
-    def generate_moves_for_side(pieces:, piece_locations:)
-      move_hashes = pieces.map { |piece_type| legal_moves_for(piece_type:, piece_locations:) }
+    def generate_moves_for_side(pieces:, piece_locations:, filter_out_moves_that_put_us_in_check: true)
+      move_hashes = pieces.map { |piece_type| legal_moves_for(piece_type:, piece_locations:, filter_out_moves_that_put_us_in_check:) }
       move_hashes.reduce(&:merge)
     end
 

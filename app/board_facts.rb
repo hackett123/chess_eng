@@ -8,13 +8,17 @@ module BoardFacts
 
   # This is kinda dumb, but otherwise we have to do a select with a ternary on every legal_moves submodule method
   def piece_type_locations(piece_locations:, white:, piece_type:)
-    piece_locations&.select do |colored_piece_type, locations|
+    pieces = piece_locations&.select do |colored_piece_type, locations|
       if white
         colored_piece_type == colored_piece_type.downcase && colored_piece_type.downcase == piece_type.downcase
       else
         colored_piece_type == colored_piece_type.upcase && colored_piece_type.downcase == piece_type.downcase
       end
-    end.values.first
+    end
+    if !pieces.nil? and pieces.any?
+      return pieces.values.first
+    end
+    []
   end
 
   def piece_present(piece_locations:, square:)
